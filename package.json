@@ -1,4 +1,13 @@
 {
+  "name": "convospace-backend",
+  "version": "1.0.0",
+  "description": "Real-time chat application backend",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",

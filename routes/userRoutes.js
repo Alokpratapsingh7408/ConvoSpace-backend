@@ -1,12 +1,24 @@
 import express from 'express';
-import { registerUser, loginUser } from '../controllers/userController.js';
+import {
+  sendOTP,
+  verifyOTP,
+  getUserProfile,
+  updateUserProfile,
+  updateOnlineStatus,
+  logout,
+} from '../controllers/userController.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// User registration
-router.post('/register', registerUser);
+// Authentication routes (no auth required)
+router.post('/auth/send-otp', sendOTP);
+router.post('/auth/verify-otp', verifyOTP);
 
-// User login
-router.post('/login', loginUser);
+// Protected routes (auth required)
+router.get('/user/profile', authenticate, getUserProfile);
+router.put('/user/profile', authenticate, updateUserProfile);
+router.put('/user/status', authenticate, updateOnlineStatus);
+router.post('/auth/logout', authenticate, logout);
 
 export default router;
