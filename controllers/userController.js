@@ -274,3 +274,55 @@ export const logout = async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to logout' });
   }
 };
+
+// Get all users (public endpoint - no authentication required)
+export const getAllUsers = async (req, res) => {
+  try {
+    const { limit = 50, offset = 0, search } = req.query;
+
+    const whereClause = search
+      ? {
+          [Op.or]: [
+            { phone_number: { [Op.like]: `%${search}%` } },
+            { username: { [Op.like]: `%${search}%` } },
+            { full_name: { [Op.like]: `%${search}%` } },
+          ],
+        }
+      : {};
+
+    const users = await User.findAll({
+      where: whereClause,
+      attributes: [
+        'id',
+        'phone_number',
+        'username',
+        'full_name',
+        'profile_picture',
+        'is_online',
+        'last_seen_at',
+        'created_at',
+      ],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['created_at', 'DESC']],
+    });
+
+    const totalCount = await User.count({ where: whereClause });
+
+    res.json({
+      success: true,
+      data: {
+        users,
+        pagination: {
+          total: totalCount,
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+          hasMore: parseInt(offset) + users.length < totalCount,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Get All Users Error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch users' });
+  }
+};

@@ -2,6 +2,8 @@ import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.js';
 import { sequelize } from './config/database.js';
 import userRoutes from './routes/userRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
@@ -41,6 +43,13 @@ app.get('/health', (req, res) => {
     timestamp: new Date(),
   });
 });
+
+// Swagger API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+  customSiteTitle: 'ConvoSpace API Documentation',
+  customCss: '.swagger-ui .topbar { display: none }',
+}));
 
 // API Routes
 app.use('/api', userRoutes);

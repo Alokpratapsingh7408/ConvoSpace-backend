@@ -13,6 +13,14 @@ export const sendMessage = async (req, res) => {
   const sender_id = req.user.id;
 
   try {
+    // Validate required fields
+    if (!conversation_id || !receiver_id) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'conversation_id and receiver_id are required' 
+      });
+    }
+
     // Verify conversation exists and user is part of it
     const conversation = await Conversation.findOne({
       where: {
@@ -22,7 +30,27 @@ export const sendMessage = async (req, res) => {
     });
 
     if (!conversation) {
-      return res.status(404).json({ success: false, error: 'Conversation not found' });
+      return res.status(404).json({ 
+        success: false, 
+        error: `Conversation not found or you are not a participant. Your user ID: ${sender_id}` 
+      });
+    }
+
+    // Verify receiver exists
+    const receiver = await User.findByPk(receiver_id);
+    if (!receiver) {
+      return res.status(404).json({ 
+        success: false, 
+        error: `Receiver with ID ${receiver_id} not found` 
+      });
+    }
+
+    // Verify receiver is part of conversation
+    if (conversation.user_one_id !== receiver_id && conversation.user_two_id !== receiver_id) {
+      return res.status(400).json({ 
+        success: false, 
+        error: `Receiver ID ${receiver_id} is not part of conversation ${conversation_id}` 
+      });
     }
 
     // Create message
@@ -54,10 +82,16 @@ export const sendMessage = async (req, res) => {
       sent_at: new Date(),
     });
 
-    // Update unread count for receiver
-    await ConversationParticipant.increment('unread_count', {
-      where: { conversation_id, user_id: receiver_id },
+    // Update unread count for receiver (only if ConversationParticipant exists)
+    const participant = await ConversationParticipant.findOne({
+      where: { conversation_id, user_id: receiver_id }
     });
+    
+    if (participant) {
+      await ConversationParticipant.increment('unread_count', {
+        where: { conversation_id, user_id: receiver_id },
+      });
+    }
 
     // Fetch complete message with relations
     const completeMessage = await Message.findByPk(message.id, {
@@ -74,7 +108,11 @@ export const sendMessage = async (req, res) => {
     });
   } catch (error) {
     console.error('Send Message Error:', error);
-    res.status(500).json({ success: false, error: 'Failed to send message' });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to send message',
+      details: error.message 
+    });
   }
 };
 
