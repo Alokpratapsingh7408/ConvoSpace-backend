@@ -610,7 +610,7 @@
             // Message events
             socket.on('message:receive', (message) => {
                 console.log('📩 Message received:', message);
-                displayMessage(message, false);
+                displayMessage(message, true);
                 
                 // Auto-mark as read if conversation is active
                 if (currentConversation && message.conversation_id === currentConversation.id) {
@@ -620,6 +620,7 @@
 
             socket.on('message:sent', (message) => {
                 console.log('✅ Message sent:', message);
+                displayMessage(message, true);
             });
 
             socket.on('message:delivered', (data) => {
@@ -798,7 +799,7 @@
 
                 const data = await response.json();
                 if (data.success) {
-                    displayMessages(data.data.reverse()); // Reverse to show oldest first
+                    displayMessages(data.data); // Don't reverse - already in correct order
                 } else {
                     console.error('Failed to load messages:', data.error);
                 }
@@ -820,6 +821,7 @@
         }
 
         function displayMessage(message, animate = true) {
+            console.log('🎨 Displaying message:', message);
             const container = document.getElementById('messagesContainer');
             const messageDiv = document.createElement('div');
             const isOwn = message.sender_id === currentUser.id;

@@ -145,7 +145,7 @@ export const getMessages = async (req, res) => {
         { model: User, as: 'sender', attributes: ['id', 'username', 'full_name', 'profile_picture'] },
         { model: MessageStatus, as: 'statuses' },
       ],
-      order: [['created_at', 'DESC']],
+      order: [['created_at', 'ASC']],
       limit: parseInt(limit),
       offset: parseInt(offset),
     });
